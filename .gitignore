@@ -1,0 +1,19 @@
+# Binaries
+/bin/
+# air's build output dir
+/tmp/
+
+# Databases (SQLite + WAL sidecars)
+*.db
+*.db-wal
+*.db-shm
+
+# Generated CSS (Tailwind output)
+/static/css/output.css
+
+# Local env / secrets
+.env
+.env.local
+
+# OS / editor noise
+.DS_Store
