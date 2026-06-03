@@ -1,0 +1,20 @@
+version: "3"
+
+vars:
+  BIN: bin/passgo
+
+tasks:
+  app:run:
+    desc: Run the app
+    cmds:
+      - go run ./cmd/passgo
+
+  build:
+    desc: Compile the binary into bin/
+    cmds:
+      - go build -o {{.BIN}} ./cmd/passgo
+
+  test:
+    desc: Run all tests
+    cmds:
+      - go test ./...

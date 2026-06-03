@@ -21,7 +21,7 @@ records **decisions we've actually made**. This file wins on tooling/versions.
 - **templ** — type-safe Go HTML components
 - **Tailwind** standalone CLI (no Node) + **templUI** components
 - **HTMX + SSE** — server pushes balance/history updates; clients POST actions
-- **Taskfile** (`Taskfile.yml`) — task runner, not Make
+- **Taskfile** (`Taskfile.yaml`) — task runner, not Make
 - **Docker** multi-stage + **Coolify** on a VPS for deploy
 
 Module path: `github.com/marekh19/passgo`. No JS framework, no Node at runtime.
