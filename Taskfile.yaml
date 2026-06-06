@@ -18,3 +18,13 @@ tasks:
     desc: Run all tests
     cmds:
       - go test ./...
+
+  tb:up:
+    desc: Start TigerBeetle (formats data file on first run)
+    cmds:
+      - docker compose up -d tigerbeetle
+
+  tb:down:
+    desc: Stop TigerBeetle
+    cmds:
+      - docker compose down

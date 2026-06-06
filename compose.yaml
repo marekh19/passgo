@@ -1,0 +1,39 @@
+name: passgo
+
+services:
+  # One-shot: formats the data file on first run, then exits.
+  # "start" refuses to boot without this - the file must exist and be formatted.
+  tigerbeetle-init:
+    image: ghcr.io/tigerbeetle/tigerbeetle:0.17.5
+    entrypoint: ["/bin/sh", "-c"]
+    # Single list element = one arg to `sh -c` (the whole script). A plain string
+    # here would be token-split by Compose, and `sh -c` keeps only the 1st token.
+    command:
+      - test -f /data/0_0.tigerbeetle || /tigerbeetle format --cluster=0 --replica=0 --replica-count=1 /data/0_0.tigerbeetle
+    # TigerBeetle needs io_uring; Docker's default seccomp profile blocks those
+    # syscalls -> PermissionDenied. Unconfined is fine for local dev.
+    # PROD (Phase 11): swap for a custom seccomp profile that allowlists only the
+    # io_uring_* syscalls instead of dropping the sandbox entirely.
+    security_opt:
+      - seccomp:unconfined
+    volumes:
+      - tb-data:/data
+
+  tigerbeetle:
+    image: ghcr.io/tigerbeetle/tigerbeetle:0.17.5
+    command: start --addresses=0.0.0.0:3000 /data/0_0.tigerbeetle
+    # See io_uring/seccomp note on tigerbeetle-init above. "start" needs it too.
+    security_opt:
+      - seccomp:unconfined
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - tb-data:/data
+    ports:
+      - "33000:3000"
+    depends_on:
+      tigerbeetle-init:
+        condition: service_completed_successfully
+
+volumes:
+  tb-data:
