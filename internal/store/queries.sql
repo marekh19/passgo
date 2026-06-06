@@ -23,3 +23,6 @@ SELECT CAST(COALESCE(MAX(ledger_id), 0) AS INTEGER) AS max_ledger FROM sessions;
 
 -- name: SweepInactiveSessions :execrows
 DELETE FROM sessions WHERE last_active < @cutoff;
+
+-- name: MarkSessionStarted :exec
+UPDATE sessions SET started = 1 WHERE code = @code;

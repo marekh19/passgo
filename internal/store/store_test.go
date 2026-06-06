@@ -47,6 +47,14 @@ func TestSessionPlayerRoundTrip(t *testing.T) {
 		t.Error("new session should have Started=false (schema default)")
 	}
 
+	// flip started, confirm it persists
+	if err := st.MarkStarted(ctx, "ABCD"); err != nil {
+		t.Fatalf("MarkStarted: %v", err)
+	}
+	if got, _ := st.GetSession(ctx, "ABCD"); !got.Started {
+		t.Error("MarkStarted did not set Started=true")
+	}
+
 	// unknown code -> sql.ErrNoRows passes through unwrapped
 	if _, err := st.GetSession(ctx, "NOPE"); !errors.Is(err, sql.ErrNoRows) {
 		t.Errorf("GetSession(unknown): got %v, want sql.ErrNoRows", err)

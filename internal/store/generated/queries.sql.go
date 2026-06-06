@@ -126,6 +126,15 @@ func (q *Queries) ListPlayersBySession(ctx context.Context, sessionCode string) 
 	return items, nil
 }
 
+const markSessionStarted = `-- name: MarkSessionStarted :exec
+UPDATE sessions SET started = 1 WHERE code = ?1
+`
+
+func (q *Queries) MarkSessionStarted(ctx context.Context, code string) error {
+	_, err := q.db.ExecContext(ctx, markSessionStarted, code)
+	return err
+}
+
 const sweepInactiveSessions = `-- name: SweepInactiveSessions :execrows
 DELETE FROM sessions WHERE last_active < ?1
 `

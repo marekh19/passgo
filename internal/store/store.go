@@ -49,6 +49,7 @@ type Store interface {
 	CreateSession(ctx context.Context, s Session) error
 	GetSession(ctx context.Context, code string) (Session, error)
 	TouchSession(ctx context.Context, code string, at int64) error
+	MarkStarted(ctx context.Context, code string) error
 	CreatePlayer(ctx context.Context, p Player) error
 	ListPlayers(ctx context.Context, sessionCode string) ([]Player, error)
 	MaxLedgerID(ctx context.Context) (uint32, error)
@@ -116,6 +117,10 @@ func (s *store) TouchSession(ctx context.Context, code string, at int64) error {
 		LastActive: at,
 		Code:       code,
 	})
+}
+
+func (s *store) MarkStarted(ctx context.Context, code string) error {
+	return s.q.MarkSessionStarted(ctx, code)
 }
 
 func (s *store) CreatePlayer(ctx context.Context, p Player) error {
