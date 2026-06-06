@@ -3,6 +3,15 @@ version: "3"
 vars:
   BIN: bin/passgo
 
+env:
+  # macOS only: Apple's new linker (ld-1266) rejects the misaligned static
+  # archive shipped in tigerbeetle-go ("not 8-byte aligned"). -ld_classic falls
+  # back to the lenient legacy linker. Empty on Linux, where Docker/prod links
+  # the *-linux.a with GNU ld and the problem doesn't exist.
+  # NOTE: ld_classic is deprecated. When Apple removes it, switch to lld
+  # (`brew install lld`, then -fuse-ld=lld) or re-align the archive.
+  CGO_LDFLAGS: '{{if eq OS "darwin"}}-Wl,-ld_classic{{end}}'
+
 tasks:
   app:run:
     desc: Run the app
