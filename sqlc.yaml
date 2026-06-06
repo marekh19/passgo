@@ -1,0 +1,13 @@
+version: "2"
+sql:
+  - engine: sqlite
+    schema: "internal/store/schema.sql"
+    queries: "internal/store/queries.sql"
+    gen:
+      go:
+        package: "generated"
+        out: "internal/store/generated"
+        # ListPlayersBySession returns [] not nil when empty -- nicer to range/JSON.
+        emit_empty_slices: true
+        # We hand-write our own Store interface in store.go; don't need sqlc's Querier.
+        emit_interface: false

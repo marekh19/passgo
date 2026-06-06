@@ -28,6 +28,11 @@ tasks:
     cmds:
       - go test ./...
 
+  sqlc:
+    desc: Regenerate type-safe Go from SQL (internal/store/generated/)
+    cmds:
+      - sqlc generate
+
   tb:up:
     desc: Start TigerBeetle (formats data file on first run)
     cmds:
