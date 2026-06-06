@@ -2,6 +2,7 @@ version: "3"
 
 vars:
   BIN: bin/passgo
+  DB: dev.db
 
 env:
   # macOS only: Apple's new linker (ld-1266) rejects the misaligned static
@@ -32,6 +33,11 @@ tasks:
     desc: Regenerate type-safe Go from SQL (internal/store/generated/)
     cmds:
       - sqlc generate
+
+  db:migrate:
+    desc: Apply schema.sql to the dev DB ({{.DB}}, idempotent)
+    cmds:
+      - sqlite3 {{.DB}} ".read internal/store/schema.sql"
 
   tb:up:
     desc: Start TigerBeetle (formats data file on first run)
