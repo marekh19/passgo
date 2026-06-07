@@ -22,6 +22,10 @@ type AccountFlags = tigerbeetle.AccountFlags
 // is optimized for IDs that increase over time, so prefer this over random.
 func NewID() Uint128 { return tigerbeetle.ID() }
 
+// IDFromBytes rebuilds a Uint128 from its 16-byte form -- the inverse of
+// Uint128.Bytes(). Used to turn account IDs stored as BLOBs back into tb IDs.
+func IDFromBytes(b [16]byte) Uint128 { return tigerbeetle.BytesToUint128(b) }
+
 // TransferReq describes one money movement. Amount is whole dollars.
 type TransferReq struct {
 	Ledger   uint32  // session ledger
