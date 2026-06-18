@@ -2,8 +2,10 @@ package tb
 
 import (
 	"context"
+	"net"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestRoundTrip(t *testing.T) {
@@ -11,6 +13,16 @@ func TestRoundTrip(t *testing.T) {
 	if addr == "" {
 		addr = "127.0.0.1:33000" // dev compose host port
 	}
+
+	// Preflight: the TigerBeetle client connects lazily and retries forever, so
+	// New() succeeds even with no server and the first real op then blocks until
+	// the test timeout (10m). A quick TCP dial lets us skip fast when nothing is
+	// listening -- e.g. `task tb:up` was never run.
+	conn, err := net.DialTimeout("tcp", addr, 500*time.Millisecond)
+	if err != nil {
+		t.Skipf("TigerBeetle unreachable at %s (is `task tb:up` up?): %v", addr, err)
+	}
+	_ = conn.Close()
 
 	client, err := New(addr)
 	if err != nil {
