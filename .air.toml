@@ -1,0 +1,18 @@
+# air: rebuild + restart the server on .go changes. The dev loop pairs this with
+# `templ --watch` (which regenerates *_templ.go, themselves .go files air watches)
+# and `tailwind --watch`. CGO_LDFLAGS for the tb link is inherited from Taskfile.
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/passgo ./cmd/passgo"
+  bin = "./tmp/passgo"
+  include_ext = ["go"]
+  # don't watch build output, vendored assets, docs, or sqlc/test-only files
+  exclude_dir = ["tmp", "bin", "static", "docs", "internal/store/generated"]
+  exclude_regex = ["_test\\.go"]
+  delay = 200
+  stop_on_error = true
+
+[misc]
+  clean_on_exit = true
