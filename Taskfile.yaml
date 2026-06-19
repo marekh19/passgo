@@ -34,6 +34,30 @@ tasks:
     cmds:
       - sqlc generate
 
+  templ:gen:
+    desc: Generate Go from .templ files (templ is a `go tool`, not on PATH)
+    cmds:
+      - go tool templ generate
+
+  templ:watch:
+    desc: Regenerate templ on change
+    cmds:
+      - go tool templ generate --watch
+
+  css:build:
+    desc: Build Tailwind CSS (input.css -> static/css/output.css)
+    cmds:
+      - tailwindcss -i input.css -o static/css/output.css --minify
+
+  css:watch:
+    desc: Rebuild Tailwind CSS on change
+    cmds:
+      - tailwindcss -i input.css -o static/css/output.css --watch
+
+  generate:
+    desc: Regenerate templ + css (run before build/commit)
+    deps: [templ:gen, css:build]
+
   db:migrate:
     desc: Apply schema.sql to the dev DB ({{.DB}}, idempotent)
     cmds:

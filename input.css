@@ -1,0 +1,12 @@
+/* @import pulls in the framework; @source tells it where our class names live
+   (the .templ files); @theme defines design tokens that become utilities. */
+@import "tailwindcss";
+
+@source "./internal/views";
+
+@theme {
+  /* Monopoly-ish accents (design brief): muted green = collect, warm red = pay.
+     These generate utilities like bg-collect / text-pay / border-collect. */
+  --color-collect: #1f7a4d;
+  --color-pay: #c0392b;
+}
