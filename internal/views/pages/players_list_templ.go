@@ -8,11 +8,7 @@ package pages
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-// PlayersList is the middle third of the player view: the OTHER players, one
-// compact row each (name left, balance right). Standalone id="players" fragment
-// so Phase 7 SSE can re-render the whole list on any balance change.
-//
-// data-player-id is a hook for Phase 8: tapping a row pre-fills "Pay [name]".
+// PlayersList is a replaceable fragment for live balance updates.
 func PlayersList(others []PlayerBalance) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -56,7 +52,7 @@ func PlayersList(others []PlayerBalance) templ.Component {
 				var templ_7745c5c3_Var2 string
 				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.ID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/players_list.templ`, Line: 16, Col: 27}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/players_list.templ`, Line: 12, Col: 27}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 				if templ_7745c5c3_Err != nil {
@@ -69,7 +65,7 @@ func PlayersList(others []PlayerBalance) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/players_list.templ`, Line: 19, Col: 38}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/players_list.templ`, Line: 15, Col: 38}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -82,7 +78,7 @@ func PlayersList(others []PlayerBalance) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(dollars(p.Balance))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/players_list.templ`, Line: 20, Col: 82}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/players_list.templ`, Line: 16, Col: 82}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {

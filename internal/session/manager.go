@@ -11,7 +11,7 @@ import (
 )
 
 // TigerBeetle account codes + transfer code/amount for the opening deal.
-// Account codes mirror the data model in CLAUDE.md (1=Player, 2=Bank).
+// Account codes distinguish players (1) from the Bank (2).
 const (
 	acctPlayer = 1 // debits_must_not_exceed_credits
 	acctBank   = 2 // unconstrained, may go negative

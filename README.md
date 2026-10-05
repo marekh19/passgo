@@ -10,11 +10,13 @@ Mobile-first web app that replaces Monopoly's paper money. Players join a sessio
 
 ## Stack
 
-Go · TigerBeetle (money) · SQLite (session metadata) · templ + Tailwind + HTMX/SSE · Docker + Coolify
+Go · TigerBeetle (money) · SQLite (session metadata) · templ · Tailwind
 
 ## Status
 
-In development. The core create, join, start, and transfer flow works with manual page refreshes. The current UI is temporary. See [`docs/`](docs/) for the original briefs and implementation plan.
+In development. See [project status](docs/STATUS.md) for current behavior and the
+active task, and [product intent](docs/PRODUCT.md) for the release goal. The
+current UI is temporary.
 
 ## Run locally
 
@@ -26,6 +28,8 @@ task app:run
 ```
 
 Open <http://localhost:8080>. Create a game, share its code, and have other players join through the home page. The host starts the game. Refresh the game page to see transfers made by other players. The local SQLite database is stored in `dev.db`.
+
+Run `task test` to check the Go code. For live reload, use `task dev` after starting TigerBeetle and open <http://localhost:8090>.
 
 ---
 

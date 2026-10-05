@@ -1,10 +1,6 @@
 package pages
 
-// PlayersList is the middle third of the player view: the OTHER players, one
-// compact row each (name left, balance right). Standalone id="players" fragment
-// so Phase 7 SSE can re-render the whole list on any balance change.
-//
-// data-player-id is a hook for Phase 8: tapping a row pre-fills "Pay [name]".
+// PlayersList is a replaceable fragment for live balance updates.
 templ PlayersList(others []PlayerBalance) {
 	<section id="players" class="py-2">
 		if len(others) == 0 {

@@ -12,8 +12,7 @@ services:
       - test -f /data/0_0.tigerbeetle || /tigerbeetle format --cluster=0 --replica=0 --replica-count=1 /data/0_0.tigerbeetle
     # TigerBeetle needs io_uring; Docker's default seccomp profile blocks those
     # syscalls -> PermissionDenied. Unconfined is fine for local dev.
-    # PROD (Phase 11): swap for a custom seccomp profile that allowlists only the
-    # io_uring_* syscalls instead of dropping the sandbox entirely.
+    # Production needs a restricted seccomp profile that allows io_uring_*.
     security_opt:
       - seccomp:unconfined
     volumes:

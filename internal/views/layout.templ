@@ -1,13 +1,5 @@
 package views
 
-// Layout is the base HTML shell. Pages compose into it by passing their content
-// as templ children -- `@views.Layout("Title") { ...page markup... }`. The
-// `{ children... }` slot is where that markup lands.
-//
-// Dark palette is hardcoded (v1 is dark-only, per the design brief), so we style
-// with concrete neutral-* colors rather than dark: variants. max-w-[480px] keeps
-// the single mobile column centered on big screens; min-h-dvh + flex-col let
-// pages push their action buttons into the thumb zone at the bottom.
 templ Layout(title string) {
 	<!DOCTYPE html>
 	<html lang="en">

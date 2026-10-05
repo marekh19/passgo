@@ -8,18 +8,7 @@ package pages
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-// Balance is the "your status" card from the top third of the player view: name,
-// the big balance (largest text on screen), and a subtle "Game CODE - N players"
-// line. It's a standalone component, not inlined into the page, so Phase 7 can
-// re-render *just this fragment* over SSE when the balance changes -- hence the
-// id="balance" the SSE swap will target.
-//
-// templ syntax notes (cheat-sheet for the next files):
-//   - `templ Name(args) { ... }` declares a component; call it with `@Name(x)`.
-//   - `{ goExpr }` interpolates a Go STRING expression, auto HTML-escaped.
-//   - Go funcs (dollars, strconv) are called inline -- it's just Go.
-//   - `if`/`for` are real Go statements; wrap the markup they guard in `{ }`.
-//   - attributes can be conditional with `if`, same as element bodies.
+// Balance is a replaceable fragment for live balance updates.
 func Balance(pv PlayerView) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -48,7 +37,7 @@ func Balance(pv PlayerView) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(pv.Me.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/balance.templ`, Line: 18, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/balance.templ`, Line: 7, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -59,7 +48,7 @@ func Balance(pv PlayerView) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if pv.IsAdmin {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " <span class=\"rounded-full bg-amber-500/15 text-amber-400 px-2 py-0.5 text-xs font-medium\">Admin</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<span class=\"rounded-full bg-amber-500/15 text-amber-400 px-2 py-0.5 text-xs font-medium\">Admin</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -71,7 +60,7 @@ func Balance(pv PlayerView) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(dollars(pv.Me.Balance))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/balance.templ`, Line: 25, Col: 90}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/balance.templ`, Line: 12, Col: 90}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -84,7 +73,7 @@ func Balance(pv PlayerView) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(pv.Code)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/balance.templ`, Line: 27, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/balance.templ`, Line: 14, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -97,7 +86,7 @@ func Balance(pv PlayerView) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(playerCountLabel(pv.PlayerCount))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/balance.templ`, Line: 27, Col: 107}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/balance.templ`, Line: 14, Col: 107}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
