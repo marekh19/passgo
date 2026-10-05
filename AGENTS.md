@@ -23,15 +23,10 @@ in the linked design task before changing screens.
 
 ## Architecture and data
 
-- Keep features in small slices under `internal/`. Wire concrete implementations
-  in `cmd/passgo/main.go`; depend on interfaces at other boundaries.
-- Use small hand-written fakes in slice tests. Use the existing Go test setup.
-- Use whole dollars. One session has one TigerBeetle ledger. Player accounts
-  cannot spend more than their credited balance; the Bank is unconstrained.
-- Starting a game transfers $1,500 from the Bank to each player. See
-  `internal/transfer/rules.go` for supported transfer codes.
-- Use `tb.Uint128` helpers when moving account IDs between TigerBeetle and SQLite.
-  Surface user-relevant TigerBeetle errors clearly.
+For changes to slices, data flows, auth, or live updates, read
+[architecture](docs/ARCHITECTURE.md) for ownership and cross-cutting seams.
+Check current behavior in code before extending a pattern; use small hand-written
+fakes in slice tests and the existing Go test setup.
 
 ## Tooling
 
