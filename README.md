@@ -27,7 +27,7 @@ task tb:up
 task app:run
 ```
 
-Open <http://localhost:8080>. Create a game, share its code, and have other players join through the home page. The host starts the game. Refresh the game page to see transfers made by other players. The local SQLite database is stored in `dev.db`.
+Open <http://localhost:7117>. Create a game, share its code, and have other players join through the home page. The host starts the game. Refresh the game page to see transfers made by other players. The local SQLite database is stored in `dev.db`.
 
 Run `task test` to check the Go code. For live reload, use `task dev` after starting TigerBeetle and open <http://localhost:8090>.
 

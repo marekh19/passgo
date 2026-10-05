@@ -28,11 +28,12 @@ tmp_dir = "tmp"
   stop_on_error = true
 
 [proxy]
-  # browse http://localhost:8090 -> proxied to the app on :8080, with a reload
-  # script injected so the browser refreshes after each rebuild.
+  # browse http://localhost:7118 (or http://<laptop-ip>:7118 on LAN) -> proxied
+  # to the app on :7117, with a reload script injected so the browser refreshes
+  # after each rebuild.
   enabled = true
-  app_port = 8080
-  proxy_port = 8090
+  app_port = 7117
+  proxy_port = 7118
 
 [misc]
   clean_on_exit = true

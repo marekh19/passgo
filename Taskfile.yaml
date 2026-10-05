@@ -19,6 +19,7 @@ tasks:
     deps: [generate]
     env:
       COOKIE_SECRET: dev-secret
+      PORT: 7117
     cmds:
       - go run ./cmd/passgo
 
@@ -53,10 +54,12 @@ tasks:
     deps: [templ:gen, css:build]
 
   dev:
-    desc: "Live-reload dev (browse :8090): air watches go/templ/css, rebuilds + reloads. Needs `task tb:up`."
+    desc: "Live-reload dev (browse :7118, LAN :7118): air watches go/templ/css, rebuilds + reloads. Needs `task tb:up`."
     env:
       # fixed secret so cookies survive the constant restarts during dev
       COOKIE_SECRET: dev-secret
+      # avoid common :8080 conflicts; Go's :PORT bind listens on all interfaces
+      PORT: 7117
     cmds:
       - air
 
