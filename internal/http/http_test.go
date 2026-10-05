@@ -493,6 +493,13 @@ func TestPublishOnlyAfterSuccessfulMutations(t *testing.T) {
 		t.Fatalf("failed transfer status = %d", rec.Code)
 	}
 	wantNoEvent(t, events)
+
+	fs.err = nil
+	rec = postForm(srv.Handler(), "/api/sessions/ABCD/transfers", "from=alice-id&to=bob-id&amount=200&code=10", cookieFor(authn, "ABCD", "alice-id"))
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("transfer status = %d", rec.Code)
+	}
+	wantEvent(t, events, liveChanged)
 }
 
 func wantEvent(t *testing.T, ch <-chan liveEvent, want liveEvent) {

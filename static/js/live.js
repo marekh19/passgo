@@ -52,7 +52,9 @@
       return;
     }
     if (!response.ok) return;
-    replaceHTML(await response.text());
+    const html = await response.text();
+    if (mine !== generation) return;
+    replaceHTML(html);
   };
 
   const events = new EventSource(`/sessions/${encodeURIComponent(code)}/events`);

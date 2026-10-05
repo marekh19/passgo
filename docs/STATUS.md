@@ -12,7 +12,7 @@ queue, not permission to build those items at the same time.
 - Players can pay another player or the Bank, and collect from the Bank. TigerBeetle stores transfers; SQLite stores game and player details.
 - Landing, join, lobby, and player pages exist. Started games show balances. Each transfer redirects to an updated page.
 - Lobby and game pages open an authenticated in-process SSE stream and refresh server-rendered roster/balance fragments after successful joins, starts, and transfers.
-- The core flow has automated tests using real HTTP handlers and SQLite with a fake ledger. The TigerBeetle round-trip test runs when a local TigerBeetle server is available.
+- The core flow and live-update client behavior have automated tests; HTTP flow tests use real handlers and SQLite with a fake ledger. The TigerBeetle round-trip test runs when a local TigerBeetle server is available.
 
 ## Now
 
