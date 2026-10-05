@@ -15,8 +15,8 @@ Go · TigerBeetle (money) · SQLite (session metadata) · templ · Tailwind
 ## Status
 
 In development. See [project status](docs/STATUS.md) for current behavior and the
-active task, and [product intent](docs/PRODUCT.md) for the release goal. The
-current UI is temporary.
+active task, [product intent](docs/PRODUCT.md) for the release goal, and
+[architecture](docs/ARCHITECTURE.md) for code ownership. The current UI is temporary.
 
 ## Run locally
 
