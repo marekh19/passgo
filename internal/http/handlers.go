@@ -1,12 +1,10 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/marekh19/passgo/internal/tb"
 	"github.com/marekh19/passgo/internal/views/pages"
 )
 
@@ -38,75 +36,29 @@ func (s *Server) handleJoinLookup(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleGamePage(w http.ResponseWriter, r *http.Request) {
 	code := r.PathValue("code")
 
-	ses, err := s.store.GetSession(r.Context(), code)
+	m, status, err := s.authenticatedMember(r.Context(), r, code)
 	if err != nil {
+		if status == http.StatusUnauthorized {
+			// Unknown/non-member page visits see the join form; live endpoints are stricter.
+			ses, getErr := s.store.GetSession(r.Context(), code)
+			if getErr != nil {
+				fail(w, getErr)
+				return
+			}
+			render(w, r, pages.Join(ses.Code, ses.Started))
+			return
+		}
 		fail(w, err) // sql.ErrNoRows -> 404
 		return
 	}
-	players, err := s.store.ListPlayers(r.Context(), code)
+	if !m.session.Started {
+		render(w, r, pages.Lobby(lobbyView(m)))
+		return
+	}
+	view, err := s.playerView(r.Context(), m)
 	if err != nil {
 		fail(w, err)
 		return
-	}
-
-	// Member iff the cookie verifies AND its player id is in this session.
-	// Codes are reused after a sweep, so a valid-looking old cookie might not
-	// belong to the current game -- the membership scan covers that.
-	me := ""
-	if id, ok := s.auth.Verify(r, code); ok {
-		for _, p := range players {
-			if p.ID == id {
-				me = id
-				break
-			}
-		}
-	}
-	if me == "" {
-		render(w, r, pages.Join(ses.Code, ses.Started))
-		return
-	}
-	if !ses.Started {
-		members := make([]pages.LobbyMember, 0, len(players))
-		for _, p := range players {
-			members = append(members, pages.LobbyMember{ID: p.ID, Name: p.Name})
-		}
-		render(w, r, pages.Lobby(pages.LobbyView{
-			Code:    ses.Code,
-			Members: members,
-			Me:      me,
-			AdminID: ses.AdminID,
-			IsAdmin: me == ses.AdminID,
-		}))
-		return
-	}
-
-	ids := make([]tb.Uint128, 0, len(players))
-	for _, p := range players {
-		ids = append(ids, tb.IDFromBytes(p.AcctID))
-	}
-	balances, err := s.balances.Balances(r.Context(), ids)
-	if err != nil {
-		fail(w, err)
-		return
-	}
-	view := pages.PlayerView{
-		Code:        ses.Code,
-		PlayerCount: len(players),
-		IsAdmin:     me == ses.AdminID,
-		Others:      make([]pages.PlayerBalance, 0, len(players)-1),
-	}
-	for _, p := range players {
-		balance, ok := balances[tb.IDFromBytes(p.AcctID)]
-		if !ok {
-			fail(w, fmt.Errorf("balance missing for player %s", p.ID))
-			return
-		}
-		player := pages.PlayerBalance{ID: p.ID, Name: p.Name, Balance: balance.Net()}
-		if p.ID == me {
-			view.Me = player
-		} else {
-			view.Others = append(view.Others, player)
-		}
 	}
 	render(w, r, pages.Player(view))
 }
@@ -140,6 +92,7 @@ func (s *Server) handleJoin(w http.ResponseWriter, r *http.Request) {
 		fail(w, err)
 		return
 	}
+	s.live.publish(code, liveChanged)
 	s.auth.IssueCookie(w, code, p.ID)
 	redirect(w, r, gameURL(code))
 }
@@ -157,6 +110,7 @@ func (s *Server) handleStart(w http.ResponseWriter, r *http.Request) {
 		fail(w, err)
 		return
 	}
+	s.live.publish(code, liveStarted)
 	redirect(w, r, gameURL(code))
 }
 
@@ -186,5 +140,6 @@ func (s *Server) handleTransfer(w http.ResponseWriter, r *http.Request) {
 		fail(w, err)
 		return
 	}
+	s.live.publish(code, liveChanged)
 	redirect(w, r, gameURL(code))
 }

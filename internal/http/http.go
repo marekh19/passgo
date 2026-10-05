@@ -27,10 +27,11 @@ type Server struct {
 	transfers transfer.Service
 	auth      auth.Authenticator
 	balances  balanceReader
+	live      *liveNotifier
 }
 
 func New(st store.Store, sessions session.Manager, transfers transfer.Service, authn auth.Authenticator, balances balanceReader) *Server {
-	return &Server{store: st, sessions: sessions, transfers: transfers, auth: authn, balances: balances}
+	return &Server{store: st, sessions: sessions, transfers: transfers, auth: authn, balances: balances, live: newLiveNotifier()}
 }
 
 // Handler builds the router. net/http's method+path patterns do the routing;
@@ -42,6 +43,9 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /{$}", s.handleLanding)
 	mux.HandleFunc("GET /join", s.handleJoinLookup)
 	mux.HandleFunc("GET /sessions/{code}", s.handleGamePage)
+	mux.HandleFunc("GET /sessions/{code}/events", s.handleEvents)
+	mux.HandleFunc("GET /sessions/{code}/lobby/roster", s.handleRosterFragment)
+	mux.HandleFunc("GET /sessions/{code}/balances", s.handleBalancesFragment)
 
 	// API -- form POSTs; reply with a 303 to the game page
 	mux.HandleFunc("POST /api/sessions", s.handleCreate)
