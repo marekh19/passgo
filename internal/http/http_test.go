@@ -56,6 +56,15 @@ type fakeService struct {
 	code   uint16
 }
 
+type fakeBalanceReader struct {
+	balances map[tb.Uint128]tb.Balance
+	err      error
+}
+
+func (r *fakeBalanceReader) Balances(context.Context, []tb.Uint128) (map[tb.Uint128]tb.Balance, error) {
+	return r.balances, r.err
+}
+
 func (s *fakeService) Execute(_ context.Context, _, from, to string, amount uint64, code uint16) (tb.Uint128, error) {
 	s.calls++
 	s.from, s.to, s.amount, s.code = from, to, amount, code
@@ -92,7 +101,7 @@ func newTestServer() (*fakeManager, *fakeService, *fakeStore, auth.Authenticator
 	fs := &fakeService{}
 	fst := &fakeStore{}
 	a := auth.New([]byte("test-secret"), false)
-	return fm, fs, fst, a, New(fst, fm, fs, a).Handler()
+	return fm, fs, fst, a, New(fst, fm, fs, a, &fakeBalanceReader{}).Handler()
 }
 
 // cookieFor mints a valid signed cookie via the real authenticator, so tests can
@@ -262,6 +271,114 @@ func TestGamePage(t *testing.T) {
 	}
 }
 
+func TestJoinLookup(t *testing.T) {
+	_, _, _, _, handler := newTestServer()
+
+	req := httptest.NewRequest(http.MethodGet, "/join?code=ab2d", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != "/sessions/AB2D" {
+		t.Fatalf("join lookup: status %d, location %q", rec.Code, rec.Header().Get("Location"))
+	}
+
+	for _, code := range []string{"A/B", "ABCD/", ""} {
+		req := httptest.NewRequest(http.MethodGet, "/join?code="+code, nil)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		if rec.Code != http.StatusBadRequest {
+			t.Errorf("code %q: status %d, want 400", code, rec.Code)
+		}
+	}
+}
+
+func TestStartedGamePageShowsBalancesAndActions(t *testing.T) {
+	manager := &fakeManager{}
+	transfers := &fakeService{}
+	st := &fakeStore{ses: store.Session{Code: "ABCD", AdminID: "alice-id", Started: true}}
+	authn := auth.New([]byte("test-secret"), false)
+	aliceAccount, bobAccount := tb.NewID(), tb.NewID()
+	st.players = []store.Player{
+		{ID: "alice-id", Name: "Alice", AcctID: aliceAccount.Bytes()},
+		{ID: "bob-id", Name: "Bob", AcctID: bobAccount.Bytes()},
+	}
+	reader := &fakeBalanceReader{balances: map[tb.Uint128]tb.Balance{
+		aliceAccount: {CreditsPosted: 1500, DebitsPosted: 200},
+		bobAccount:   {CreditsPosted: 1600},
+	}}
+	handler := New(st, manager, transfers, authn, reader).Handler()
+
+	req := httptest.NewRequest(http.MethodGet, "/sessions/ABCD", nil)
+	req.AddCookie(cookieFor(authn, "ABCD", "alice-id"))
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rec.Code, rec.Body)
+	}
+	for _, text := range []string{"Alice", "$1,300", "Bob", "$1,600", "Collect $200", "Pay player", "Pay bank", "Collect from bank"} {
+		if !strings.Contains(rec.Body.String(), text) {
+			t.Errorf("body missing %q", text)
+		}
+	}
+	if strings.Contains(rec.Body.String(), "Transfer</h2>") {
+		t.Error("page still shows the raw transfer form")
+	}
+}
+
+func TestStartedGamePageFailsWhenBalanceIsMissing(t *testing.T) {
+	st := &fakeStore{ses: store.Session{Code: "ABCD", Started: true}}
+	account := tb.NewID()
+	st.players = []store.Player{{ID: "alice-id", Name: "Alice", AcctID: account.Bytes()}}
+	authn := auth.New([]byte("test-secret"), false)
+	handler := New(st, &fakeManager{}, &fakeService{}, authn, &fakeBalanceReader{balances: map[tb.Uint128]tb.Balance{}}).Handler()
+	req := httptest.NewRequest(http.MethodGet, "/sessions/ABCD", nil)
+	req.AddCookie(cookieFor(authn, "ABCD", "alice-id"))
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want 500", rec.Code)
+	}
+}
+
+func TestLobbyShowsStartOnlyToAdmin(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		playerID     string
+		wantText     string
+		unwantedText string
+	}{
+		{"admin", "alice-id", "Start game", "Waiting for host"},
+		{"player", "bob-id", "Waiting for host", "Start game"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, _, st, authn, handler := newTestServer()
+			st.ses = store.Session{Code: "ABCD", AdminID: "alice-id"}
+			st.players = []store.Player{
+				{ID: "alice-id", Name: "Alice"},
+				{ID: "bob-id", Name: "Bob"},
+			}
+
+			req := httptest.NewRequest(http.MethodGet, "/sessions/ABCD", nil)
+			req.AddCookie(cookieFor(authn, "ABCD", tc.playerID))
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200", rec.Code)
+			}
+			body := rec.Body.String()
+			for _, text := range []string{"Share this code", "ABCD", "Alice", "Bob", tc.wantText} {
+				if !strings.Contains(body, text) {
+					t.Errorf("body missing %q", text)
+				}
+			}
+			if strings.Contains(body, tc.unwantedText) {
+				t.Errorf("body unexpectedly contains %q", tc.unwantedText)
+			}
+		})
+	}
+}
+
 func TestTransferForwardsParsedArgs(t *testing.T) {
 	_, fs, _, a, h := newTestServer()
 
@@ -292,5 +409,16 @@ func TestTransferRejectsBadAmount(t *testing.T) {
 	}
 	if fs.calls != 0 {
 		t.Error("Execute must not run with an unparseable amount")
+	}
+}
+
+func TestTransferReportsInsufficientFunds(t *testing.T) {
+	_, transfers, _, authn, handler := newTestServer()
+	transfers.err = tb.ErrInsufficientFunds
+	rec := postForm(handler, "/api/sessions/ABCD/transfers",
+		"from=alice-id&to=bob-id&amount=2000&code=10",
+		cookieFor(authn, "ABCD", "alice-id"))
+	if rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "not enough money") {
+		t.Fatalf("status = %d, body = %q", rec.Code, rec.Body.String())
 	}
 }

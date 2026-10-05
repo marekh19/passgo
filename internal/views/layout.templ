@@ -1,0 +1,27 @@
+package views
+
+// Layout is the base HTML shell. Pages compose into it by passing their content
+// as templ children -- `@views.Layout("Title") { ...page markup... }`. The
+// `{ children... }` slot is where that markup lands.
+//
+// Dark palette is hardcoded (v1 is dark-only, per the design brief), so we style
+// with concrete neutral-* colors rather than dark: variants. max-w-[480px] keeps
+// the single mobile column centered on big screens; min-h-dvh + flex-col let
+// pages push their action buttons into the thumb zone at the bottom.
+templ Layout(title string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+			<title>{ title }</title>
+			<link rel="stylesheet" href="/static/css/output.css"/>
+			<script src="/static/htmx.min.js" defer></script>
+		</head>
+		<body class="min-h-dvh bg-neutral-950 text-neutral-50 antialiased">
+			<main class="mx-auto flex min-h-dvh max-w-[480px] flex-col px-5">
+				{ children... }
+			</main>
+		</body>
+	</html>
+}

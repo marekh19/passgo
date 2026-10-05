@@ -1,28 +1,36 @@
-// Package http wires the router and handlers. It depends only on the other
-// slices' interfaces -- session/transfer for actions, store for read-only page
-// data, auth for identity cookie. It never touches tb or SQLite directly.
+// Package http wires the router and handlers.
 package http
 
 import (
+	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"net/http"
+
+	"github.com/a-h/templ"
 
 	"github.com/marekh19/passgo/internal/auth"
 	"github.com/marekh19/passgo/internal/session"
 	"github.com/marekh19/passgo/internal/store"
+	"github.com/marekh19/passgo/internal/tb"
 	"github.com/marekh19/passgo/internal/transfer"
 )
+
+type balanceReader interface {
+	Balances(context.Context, []tb.Uint128) (map[tb.Uint128]tb.Balance, error)
+}
 
 type Server struct {
 	store     store.Store
 	sessions  session.Manager
 	transfers transfer.Service
 	auth      auth.Authenticator
+	balances  balanceReader
 }
 
-func New(st store.Store, sessions session.Manager, transfers transfer.Service, authn auth.Authenticator) *Server {
-	return &Server{store: st, sessions: sessions, transfers: transfers, auth: authn}
+func New(st store.Store, sessions session.Manager, transfers transfer.Service, authn auth.Authenticator, balances balanceReader) *Server {
+	return &Server{store: st, sessions: sessions, transfers: transfers, auth: authn, balances: balances}
 }
 
 // Handler builds the router. net/http's method+path patterns do the routing;
@@ -32,6 +40,7 @@ func (s *Server) Handler() http.Handler {
 
 	// UI -- server-rendered pages
 	mux.HandleFunc("GET /{$}", s.handleLanding)
+	mux.HandleFunc("GET /join", s.handleJoinLookup)
 	mux.HandleFunc("GET /sessions/{code}", s.handleGamePage)
 
 	// API -- form POSTs; reply with a 303 to the game page
@@ -40,7 +49,19 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/sessions/{code}/start", s.handleStart)
 	mux.HandleFunc("POST /api/sessions/{code}/transfers", s.handleTransfer)
 
+	// Static assets: built CSS + vendored htmx, served from ./static.
+	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
 	return mux
+}
+
+// render writes a templ component as the HTML response. A render error means the
+// component already wrote a partial body, so we can only log it.
+func render(w http.ResponseWriter, r *http.Request, c templ.Component) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := c.Render(r.Context(), w); err != nil {
+		log.Printf("render: %v", err)
+	}
 }
 
 // gameURL is the canonical page for a session.
@@ -65,6 +86,8 @@ func fail(w http.ResponseWriter, err error) {
 		http.Error(w, err.Error(), http.StatusConflict)
 	case errors.Is(err, session.ErrCodeExhausted):
 		http.Error(w, "could not allocate a game code, try again", http.StatusServiceUnavailable)
+	case errors.Is(err, tb.ErrInsufficientFunds):
+		http.Error(w, "not enough money for that transfer", http.StatusUnprocessableEntity)
 	case errors.Is(err, transfer.ErrBadAmount),
 		errors.Is(err, transfer.ErrBadCode),
 		errors.Is(err, transfer.ErrBadDirection),

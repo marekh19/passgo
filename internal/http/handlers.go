@@ -1,14 +1,35 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/marekh19/passgo/internal/tb"
+	"github.com/marekh19/passgo/internal/views/pages"
 )
 
 // handleLanding shows the create form. Joining is just navigating to a game URL.
 func (s *Server) handleLanding(w http.ResponseWriter, r *http.Request) {
-	renderLanding(w)
+	render(w, r, pages.Landing())
+}
+
+func (s *Server) handleJoinLookup(w http.ResponseWriter, r *http.Request) {
+	code := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("code")))
+	if len(code) != 4 {
+		http.Error(w, "game code must have four characters", http.StatusBadRequest)
+		return
+	}
+	for _, ch := range code {
+		if ch < 'A' || ch > 'Z' {
+			if ch < '2' || ch > '9' {
+				http.Error(w, "game code must contain letters or digits", http.StatusBadRequest)
+				return
+			}
+		}
+	}
+	http.Redirect(w, r, gameURL(code), http.StatusSeeOther)
 }
 
 // handleGamePage shows the lobby/player view to members, else a join form.
@@ -41,10 +62,53 @@ func (s *Server) handleGamePage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if me == "" {
-		renderJoin(w, ses)
+		render(w, r, pages.Join(ses.Code, ses.Started))
 		return
 	}
-	renderGame(w, ses, players, me)
+	if !ses.Started {
+		members := make([]pages.LobbyMember, 0, len(players))
+		for _, p := range players {
+			members = append(members, pages.LobbyMember{ID: p.ID, Name: p.Name})
+		}
+		render(w, r, pages.Lobby(pages.LobbyView{
+			Code:    ses.Code,
+			Members: members,
+			Me:      me,
+			AdminID: ses.AdminID,
+			IsAdmin: me == ses.AdminID,
+		}))
+		return
+	}
+
+	ids := make([]tb.Uint128, 0, len(players))
+	for _, p := range players {
+		ids = append(ids, tb.IDFromBytes(p.AcctID))
+	}
+	balances, err := s.balances.Balances(r.Context(), ids)
+	if err != nil {
+		fail(w, err)
+		return
+	}
+	view := pages.PlayerView{
+		Code:        ses.Code,
+		PlayerCount: len(players),
+		IsAdmin:     me == ses.AdminID,
+		Others:      make([]pages.PlayerBalance, 0, len(players)-1),
+	}
+	for _, p := range players {
+		balance, ok := balances[tb.IDFromBytes(p.AcctID)]
+		if !ok {
+			fail(w, fmt.Errorf("balance missing for player %s", p.ID))
+			return
+		}
+		player := pages.PlayerBalance{ID: p.ID, Name: p.Name, Balance: balance.Net()}
+		if p.ID == me {
+			view.Me = player
+		} else {
+			view.Others = append(view.Others, player)
+		}
+	}
+	render(w, r, pages.Player(view))
 }
 
 // handleCreate makes a game, signs the current creator in as admin, redirects to it.

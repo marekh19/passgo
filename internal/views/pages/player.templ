@@ -1,0 +1,50 @@
+package pages
+
+import "github.com/marekh19/passgo/internal/views"
+
+templ Player(pv PlayerView) {
+	@views.Layout("Game " + pv.Code) {
+		@Balance(pv)
+		@PlayersList(pv.Others)
+		<a href={ templ.SafeURL("/sessions/" + pv.Code) } class="py-3 underline">Refresh balances</a>
+		<div class="flex flex-col gap-5 pb-8">
+			<form method="post" action={ templ.SafeURL("/api/sessions/" + pv.Code + "/transfers") }>
+				<input type="hidden" name="from" value="bank"/>
+				<input type="hidden" name="to" value={ pv.Me.ID }/>
+				<input type="hidden" name="amount" value="200"/>
+				<input type="hidden" name="code" value="20"/>
+				<button type="submit" class="h-12 w-full rounded bg-collect font-semibold">Collect $200</button>
+			</form>
+			if len(pv.Others) > 0 {
+				<form method="post" action={ templ.SafeURL("/api/sessions/" + pv.Code + "/transfers") } class="flex flex-col gap-2">
+					<label for="recipient">Pay player</label>
+					<select id="recipient" name="to" required class="h-12 rounded bg-neutral-900 px-3">
+						for _, other := range pv.Others {
+							<option value={ other.ID }>{ other.Name }</option>
+						}
+					</select>
+					<input type="hidden" name="from" value={ pv.Me.ID }/>
+					<input type="hidden" name="code" value="10"/>
+					<input name="amount" type="number" min="1" step="1" required placeholder="Amount" class="h-12 rounded bg-neutral-900 px-3"/>
+					<button type="submit" class="h-12 rounded bg-pay font-semibold">Pay player</button>
+				</form>
+			}
+			<form method="post" action={ templ.SafeURL("/api/sessions/" + pv.Code + "/transfers") } class="flex flex-col gap-2">
+				<label for="pay-bank">Pay bank</label>
+				<input type="hidden" name="from" value={ pv.Me.ID }/>
+				<input type="hidden" name="to" value="bank"/>
+				<input type="hidden" name="code" value="32"/>
+				<input id="pay-bank" name="amount" type="number" min="1" step="1" required placeholder="Amount" class="h-12 rounded bg-neutral-900 px-3"/>
+				<button type="submit" class="h-12 rounded bg-pay font-semibold">Pay bank</button>
+			</form>
+			<form method="post" action={ templ.SafeURL("/api/sessions/" + pv.Code + "/transfers") } class="flex flex-col gap-2">
+				<label for="collect-bank">Collect from bank</label>
+				<input type="hidden" name="from" value="bank"/>
+				<input type="hidden" name="to" value={ pv.Me.ID }/>
+				<input type="hidden" name="code" value="23"/>
+				<input id="collect-bank" name="amount" type="number" min="1" step="1" required placeholder="Amount" class="h-12 rounded bg-neutral-900 px-3"/>
+				<button type="submit" class="h-12 rounded bg-collect font-semibold">Collect from bank</button>
+			</form>
+		</div>
+	}
+}

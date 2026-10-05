@@ -16,11 +16,15 @@ env:
 tasks:
   app:run:
     desc: Run the app
+    deps: [generate]
+    env:
+      COOKIE_SECRET: dev-secret
     cmds:
       - go run ./cmd/passgo
 
   build:
     desc: Compile the binary into bin/
+    deps: [generate]
     cmds:
       - go build -o {{.BIN}} ./cmd/passgo
 

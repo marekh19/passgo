@@ -4,6 +4,7 @@ package tb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	tigerbeetle "github.com/tigerbeetle/tigerbeetle-go"
@@ -41,6 +42,8 @@ type Balance struct {
 	DebitsPosted  uint64
 	CreditsPosted uint64
 }
+
+var ErrInsufficientFunds = errors.New("insufficient funds")
 
 // Net is the spendable balance (credits - debits). Player accounts stay >= 0;
 // the Bank may be negative.
@@ -107,7 +110,9 @@ func (c *client) Transfer(ctx context.Context, t TransferReq) (Uint128, error) {
 	}
 	for _, r := range res {
 		if r.Status != tigerbeetle.TransferCreated {
-			// e.g. TransferExceedsCredits = insufficient funds. .String() is human-readable.
+			if r.Status == tigerbeetle.TransferExceedsCredits {
+				return Uint128{}, ErrInsufficientFunds
+			}
 			return Uint128{}, fmt.Errorf("tb: transfer rejected: %s", r.Status)
 		}
 	}

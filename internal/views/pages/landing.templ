@@ -1,0 +1,35 @@
+package pages
+
+import "github.com/marekh19/passgo/internal/views"
+
+templ Landing() {
+	@views.Layout("Pass Go") {
+		<div class="flex flex-1 flex-col justify-center gap-10 py-12">
+			<header class="text-center">
+				<h1 class="text-5xl font-black tracking-tight">Pass Go</h1>
+				<p class="mt-2 text-neutral-400">Monopoly cash, on your phone.</p>
+			</header>
+			<form method="post" action="/api/sessions" class="flex flex-col gap-3">
+				<label for="creator-name">Your name</label>
+				<input
+					id="creator-name"
+					type="text"
+					name="name"
+					required
+					maxlength="20"
+					autocomplete="off"
+					placeholder="Your name"
+					class="h-14 rounded-xl bg-neutral-900 px-4 text-lg ring-1 ring-neutral-800 outline-none focus:ring-2 focus:ring-collect"
+				/>
+				<button class="h-14 rounded-xl bg-collect text-lg font-semibold text-white transition active:scale-[0.99]">
+					Create game
+				</button>
+			</form>
+			<form method="get" action="/join" class="flex flex-col gap-3">
+				<label for="code">Have a game code?</label>
+				<input id="code" name="code" required maxlength="4" autocomplete="off" class="h-12 rounded bg-neutral-900 px-3 uppercase"/>
+				<button type="submit" class="h-12 rounded bg-neutral-700">Join game</button>
+			</form>
+		</div>
+	}
+}

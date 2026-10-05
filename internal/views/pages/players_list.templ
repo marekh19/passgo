@@ -1,0 +1,26 @@
+package pages
+
+// PlayersList is the middle third of the player view: the OTHER players, one
+// compact row each (name left, balance right). Standalone id="players" fragment
+// so Phase 7 SSE can re-render the whole list on any balance change.
+//
+// data-player-id is a hook for Phase 8: tapping a row pre-fills "Pay [name]".
+templ PlayersList(others []PlayerBalance) {
+	<section id="players" class="py-2">
+		if len(others) == 0 {
+			<p class="py-6 text-center text-sm text-neutral-500">No other players yet.</p>
+		} else {
+			<ul class="divide-y divide-neutral-800">
+				for _, p := range others {
+					<li
+						data-player-id={ p.ID }
+						class="flex items-center justify-between py-3"
+					>
+						<span class="text-base">{ p.Name }</span>
+						<span class="tabular-nums font-medium text-neutral-200">{ dollars(p.Balance) }</span>
+					</li>
+				}
+			</ul>
+		}
+	</section>
+}

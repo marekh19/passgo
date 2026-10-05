@@ -1,0 +1,41 @@
+package pages
+
+import "github.com/marekh19/passgo/internal/views"
+
+// Lobby is the pre-game screen: big shareable code, the roster as players join,
+// and the thumb-zone control -- Start for the admin, a wait notice for everyone
+// else. No balances yet (the game hasn't dealt the opening $1500).
+templ Lobby(lv LobbyView) {
+	@views.Layout("Lobby · " + lv.Code) {
+		<div class="flex flex-1 flex-col py-8">
+			<header class="text-center">
+				<p class="text-sm text-neutral-500">Share this code</p>
+				<p class="mt-1 text-5xl font-black tracking-[0.2em] tabular-nums">{ lv.Code }</p>
+			</header>
+			<ul class="mt-10 divide-y divide-neutral-800">
+				for _, m := range lv.Members {
+					<li class="flex items-center gap-2 py-3">
+						<span class="text-base">{ m.Name }</span>
+						if m.ID == lv.Me {
+							<span class="text-xs text-neutral-500">(you)</span>
+						}
+						if m.ID == lv.AdminID {
+							<span class="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-400">host</span>
+						}
+					</li>
+				}
+			</ul>
+			<div class="mt-auto pt-8">
+				if lv.IsAdmin {
+					<form method="post" action={ templ.SafeURL("/api/sessions/" + lv.Code + "/start") }>
+						<button type="submit" class="h-14 w-full rounded-xl bg-collect text-lg font-semibold text-white transition active:scale-[0.99]">
+							Start game
+						</button>
+					</form>
+				} else {
+					<p class="text-center text-neutral-500">Waiting for host to start…</p>
+				}
+			</div>
+		</div>
+	}
+}

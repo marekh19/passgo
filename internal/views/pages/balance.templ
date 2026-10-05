@@ -1,0 +1,30 @@
+package pages
+
+// Balance is the "your status" card from the top third of the player view: name,
+// the big balance (largest text on screen), and a subtle "Game CODE - N players"
+// line. It's a standalone component, not inlined into the page, so Phase 7 can
+// re-render *just this fragment* over SSE when the balance changes -- hence the
+// id="balance" the SSE swap will target.
+//
+// templ syntax notes (cheat-sheet for the next files):
+//   - `templ Name(args) { ... }` declares a component; call it with `@Name(x)`.
+//   - `{ goExpr }` interpolates a Go STRING expression, auto HTML-escaped.
+//   - Go funcs (dollars, strconv) are called inline -- it's just Go.
+//   - `if`/`for` are real Go statements; wrap the markup they guard in `{ }`.
+//   - attributes can be conditional with `if`, same as element bodies.
+templ Balance(pv PlayerView) {
+	<section id="balance" class="pt-8 pb-6 text-center">
+		<div class="flex items-center justify-center gap-2">
+			<h1 class="text-xl font-semibold">{ pv.Me.Name }</h1>
+			if pv.IsAdmin {
+				// admin badge: distinct accent so referee mode is obvious.
+				<span class="rounded-full bg-amber-500/15 text-amber-400 px-2 py-0.5 text-xs font-medium">Admin</span>
+			}
+		</div>
+		// tabular-nums keeps digits aligned when the number animates in Phase 10.
+		<p class="mt-1 text-6xl font-black tabular-nums tracking-tight">{ dollars(pv.Me.Balance) }</p>
+		<p class="mt-2 text-sm text-neutral-500">
+			Game <span class="font-medium text-neutral-300">{ pv.Code }</span> · { playerCountLabel(pv.PlayerCount) }
+		</p>
+	</section>
+}

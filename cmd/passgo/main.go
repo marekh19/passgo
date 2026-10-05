@@ -36,7 +36,7 @@ func main() {
 	authn := auth.New(secret, secure)
 	sessions := session.New(tbc, st)
 	transfers := transfer.New(tbc, st)
-	srv := apphttp.New(st, sessions, transfers, authn)
+	srv := apphttp.New(st, sessions, transfers, authn, tbc)
 
 	addr := ":" + port
 	log.Printf("pass go listening on %s", addr)
