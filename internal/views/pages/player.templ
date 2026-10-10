@@ -4,8 +4,10 @@ import "github.com/marekh19/passgo/internal/views"
 
 templ Player(pv PlayerView) {
 	@views.Layout("Game " + pv.Code) {
-		@Balance(pv)
-		@PlayersList(pv.Others)
+		<div data-live="game" data-code={ pv.Code }>
+			@BalanceAndPlayers(pv)
+			@LiveWarning()
+		</div>
 		<a href={ templ.SafeURL("/sessions/" + pv.Code) } class="py-3 underline">Refresh balances</a>
 		<div class="flex flex-col gap-5 pb-8">
 			<form method="post" action={ templ.SafeURL("/api/sessions/" + pv.Code + "/transfers") }>

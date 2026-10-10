@@ -33,6 +33,7 @@ tasks:
     desc: Run all tests
     cmds:
       - go test ./...
+      - node --test static/js/live_test.mjs
 
   sqlc:
     desc: Regenerate type-safe Go from SQL (internal/store/generated/)

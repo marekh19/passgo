@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/marekh19/passgo/internal/auth"
 	"github.com/marekh19/passgo/internal/session"
@@ -409,6 +410,116 @@ func TestTransferRejectsBadAmount(t *testing.T) {
 	}
 	if fs.calls != 0 {
 		t.Error("Execute must not run with an unparseable amount")
+	}
+}
+
+func TestLiveEndpointsRequireSessionCookieAndMembership(t *testing.T) {
+	members := []store.Player{{ID: "alice-id", Name: "Alice"}}
+	for _, tc := range []struct {
+		name   string
+		path   string
+		getErr error
+		cookie string
+		want   int
+	}{
+		{"missing stream session", "/sessions/ABCD/events", sql.ErrNoRows, "alice-id", http.StatusNotFound},
+		{"stream no cookie", "/sessions/ABCD/events", nil, "", http.StatusUnauthorized},
+		{"stream stale cookie", "/sessions/ABCD/events", nil, "ghost-id", http.StatusUnauthorized},
+		{"stream other-game cookie", "/sessions/ABCD/events", nil, "other-game", http.StatusUnauthorized},
+		{"roster no cookie", "/sessions/ABCD/lobby/roster", nil, "", http.StatusUnauthorized},
+		{"balances stale cookie", "/sessions/ABCD/balances", nil, "ghost-id", http.StatusUnauthorized},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, _, st, authn, handler := newTestServer()
+			st.getErr = tc.getErr
+			st.ses = store.Session{Code: "ABCD", AdminID: "alice-id", Started: true}
+			st.players = members
+			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+			if tc.cookie == "other-game" {
+				req.AddCookie(cookieFor(authn, "WXYZ", "alice-id"))
+			} else if tc.cookie != "" {
+				req.AddCookie(cookieFor(authn, "ABCD", tc.cookie))
+			}
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+			if rec.Code != tc.want {
+				t.Fatalf("status = %d, want %d", rec.Code, tc.want)
+			}
+		})
+	}
+}
+
+func TestPublishOnlyAfterSuccessfulMutations(t *testing.T) {
+	fm := &fakeManager{joinPlayer: store.Player{ID: "bob-id"}}
+	fs := &fakeService{}
+	st := &fakeStore{}
+	authn := auth.New([]byte("test-secret"), false)
+	srv := New(st, fm, fs, authn, &fakeBalanceReader{})
+	_, events := srv.live.subscribe("ABCD")
+	_, otherEvents := srv.live.subscribe("WXYZ")
+
+	rec := postForm(srv.Handler(), "/api/sessions/ABCD/join", "name=Bob")
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("join status = %d", rec.Code)
+	}
+	wantEvent(t, events, liveChanged)
+	wantNoEvent(t, otherEvents)
+
+	fm.joinErr = sql.ErrNoRows
+	rec = postForm(srv.Handler(), "/api/sessions/ABCD/join", "name=Bob")
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("failed join status = %d", rec.Code)
+	}
+	wantNoEvent(t, events)
+
+	fm.joinErr = nil
+	fm.startErr = session.ErrNotAdmin
+	rec = postForm(srv.Handler(), "/api/sessions/ABCD/start", "", cookieFor(authn, "ABCD", "alice-id"))
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("failed start status = %d", rec.Code)
+	}
+	wantNoEvent(t, events)
+
+	fm.startErr = nil
+	rec = postForm(srv.Handler(), "/api/sessions/ABCD/start", "", cookieFor(authn, "ABCD", "alice-id"))
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("start status = %d", rec.Code)
+	}
+	wantEvent(t, events, liveStarted)
+
+	fs.err = tb.ErrInsufficientFunds
+	rec = postForm(srv.Handler(), "/api/sessions/ABCD/transfers", "from=alice-id&to=bob-id&amount=2000&code=10", cookieFor(authn, "ABCD", "alice-id"))
+	if rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("failed transfer status = %d", rec.Code)
+	}
+	wantNoEvent(t, events)
+
+	fs.err = nil
+	rec = postForm(srv.Handler(), "/api/sessions/ABCD/transfers", "from=alice-id&to=bob-id&amount=200&code=10", cookieFor(authn, "ABCD", "alice-id"))
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("transfer status = %d", rec.Code)
+	}
+	wantEvent(t, events, liveChanged)
+}
+
+func wantEvent(t *testing.T, ch <-chan liveEvent, want liveEvent) {
+	t.Helper()
+	select {
+	case got := <-ch:
+		if got != want {
+			t.Fatalf("event = %q, want %q", got, want)
+		}
+	case <-time.After(time.Second):
+		t.Fatalf("timed out waiting for %q", want)
+	}
+}
+
+func wantNoEvent(t *testing.T, ch <-chan liveEvent) {
+	t.Helper()
+	select {
+	case got := <-ch:
+		t.Fatalf("unexpected event %q", got)
+	case <-time.After(20 * time.Millisecond):
 	}
 }
 

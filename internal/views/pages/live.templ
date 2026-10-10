@@ -1,0 +1,28 @@
+package pages
+
+templ LiveWarning() {
+	<p id="live-warning" hidden class="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+		Live updates are disconnected. You can keep playing or use the refresh link; this page will resync when the connection returns.
+	</p>
+}
+
+templ Roster(lv LobbyView) {
+	<ul id="roster" class="mt-10 divide-y divide-neutral-800">
+		for _, m := range lv.Members {
+			<li class="flex items-center gap-2 py-3">
+				<span class="text-base">{ m.Name }</span>
+				if m.ID == lv.Me {
+					<span class="text-xs text-neutral-500">(you)</span>
+				}
+				if m.ID == lv.AdminID {
+					<span class="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-400">host</span>
+				}
+			</li>
+		}
+	</ul>
+}
+
+templ BalanceAndPlayers(pv PlayerView) {
+	@Balance(pv)
+	@PlayersList(pv.Others)
+}

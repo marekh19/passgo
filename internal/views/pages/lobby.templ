@@ -7,24 +7,13 @@ import "github.com/marekh19/passgo/internal/views"
 // else. No balances yet (the game hasn't dealt the opening $1500).
 templ Lobby(lv LobbyView) {
 	@views.Layout("Lobby · " + lv.Code) {
-		<div class="flex flex-1 flex-col py-8">
+		<div class="flex flex-1 flex-col py-8" data-live="lobby" data-code={ lv.Code }>
 			<header class="text-center">
 				<p class="text-sm text-neutral-500">Share this code</p>
 				<p class="mt-1 text-5xl font-black tracking-[0.2em] tabular-nums">{ lv.Code }</p>
 			</header>
-			<ul class="mt-10 divide-y divide-neutral-800">
-				for _, m := range lv.Members {
-					<li class="flex items-center gap-2 py-3">
-						<span class="text-base">{ m.Name }</span>
-						if m.ID == lv.Me {
-							<span class="text-xs text-neutral-500">(you)</span>
-						}
-						if m.ID == lv.AdminID {
-							<span class="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-400">host</span>
-						}
-					</li>
-				}
-			</ul>
+			@LiveWarning()
+			@Roster(lv)
 			<div class="mt-auto pt-8">
 				if lv.IsAdmin {
 					<form method="post" action={ templ.SafeURL("/api/sessions/" + lv.Code + "/start") }>
