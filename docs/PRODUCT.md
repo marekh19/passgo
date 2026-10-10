@@ -27,6 +27,9 @@ the Bank has no spending limit. Failed actions need a clear explanation.
 
 ## Experience goals
 
+- The app is mobile-only: design and verify for phones, not desktop or tablet
+  layouts. No desktop-specific adaptations are required. Different phone widths,
+  safe areas, larger text, and accessible input still need to work.
 - Keep frequent actions short and usable with one hand on a phone. Collecting
   $200 should be a single action.
 - Make balances and action results easy to read. Use accessible target sizes and

@@ -23,6 +23,12 @@ tasks:
     cmds:
       - go run ./cmd/passgo
 
+  design:preview:
+    desc: Run the isolated design preview on LAN port 7119 (trusted networks only)
+    deps: [generate]
+    cmds:
+      - go run ./cmd/design-preview
+
   build:
     desc: Compile the binary into bin/
     deps: [generate]
@@ -33,7 +39,7 @@ tasks:
     desc: Run all tests
     cmds:
       - go test ./...
-      - node --test static/js/live_test.mjs
+      - node --test static/js/live_test.mjs static/js/payment_test.mjs
 
   sqlc:
     desc: Regenerate type-safe Go from SQL (internal/store/generated/)

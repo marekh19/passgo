@@ -8,9 +8,6 @@
 *.db-wal
 *.db-shm
 
-# Generated CSS (Tailwind output)
-/static/css/output.css
-
 # Local env / secrets
 .env
 .env.local

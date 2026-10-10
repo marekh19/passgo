@@ -14,9 +14,16 @@ queue, not permission to build those items at the same time.
 - Lobby and game pages open an authenticated in-process SSE stream and refresh server-rendered roster/balance fragments after successful joins, starts, and transfers.
 - The core flow and live-update client behavior have automated tests; HTTP flow tests use real handlers and SQLite with a fake ledger. The TigerBeetle round-trip test runs when a local TigerBeetle server is available.
 
+- The approved [design system](DESIGN.md) includes shared primitives, self-hosted
+  fonts, and an isolated working payment-sheet/keypad preview. Production screens
+  remain unchanged. Run `task design:preview` on a trusted local network and open
+  `http://<server-lan-ip>:7119`; see [screenshots/checks](design-preview/README.md).
+
 ## Now
 
-- [02 Design system](tasks/02-design-system.md)
+- [03 Screen redesign](tasks/03-screen-redesign.md)
+  - Includes removing `cmd/design-preview/`, `task design:preview`, and their
+    demo-only code once the production screens provide the real flows.
 
 ## Completed
 
@@ -25,9 +32,15 @@ queue, not permission to build those items at the same time.
   - 2026-10-05: `task build` passed.
   - 2026-10-05: Manual two-device check with TigerBeetle/app running passed.
 
+- [02 Design system](tasks/02-design-system.md)
+  - Build/tests and 84 automated browser assertions passed.
+  - User approved the visual direction and confirmed phone keyboard, larger-text/
+    focus, and background-scroll-lock checks.
+  - User removed manual screen-reader verification from testing; it was not
+    performed. Accessible markup and keyboard tests remain.
+
 ## Later
 
-- [03 Screen redesign](tasks/03-screen-redesign.md)
 - [04 Transaction history](tasks/04-transaction-history.md)
 - [05 Host controls](tasks/05-host-controls.md)
 - [06 Game integrity](tasks/06-game-integrity.md)

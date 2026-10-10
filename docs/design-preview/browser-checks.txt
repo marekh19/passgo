@@ -1,0 +1,84 @@
+320: no page overflow
+320: targets >=48px
+320: background stays fixed during backdrop scrolling (-548 -> -548)
+320: initial amount focus
+320: preset replaces amount
+320: pointer selection insertion
+320: backspace
+320: physical typing works
+320: invalid clipboard paste remains unchanged
+320: invalid edit disables submission
+320: exact uint64 maximum valid
+320: Tab does not focus background controls 0
+320: Tab does not focus background controls 1
+320: Tab does not focus background controls 2
+320: Tab does not focus background controls 3
+320: Tab does not focus background controls 4
+320: Tab does not focus background controls 5
+320: Tab does not focus background controls 6
+320: Tab does not focus background controls 7
+320: Tab does not focus background controls 8
+320: Tab does not focus background controls 9
+320: Tab does not focus background controls 10
+320: Tab does not focus background controls 11
+320: Tab does not focus background controls 12
+320: Tab does not focus background controls 13
+320: Tab does not focus background controls 14
+320: Tab does not focus background controls 15
+320: Tab does not focus background controls 16
+320: Tab does not focus background controls 17
+320: Tab does not focus background controls 18
+320: Tab does not focus background controls 19
+320: Escape restores focus
+320: close restores background position
+320: reopen clears amount
+320: demo submit stays local
+320: 200% text no page overflow
+320: enlarged sheet no horizontal overflow
+320: short sheet submit scrolls into view
+320: sheet remains scrollable while background is locked
+320: sheet boundary scrolling does not move background
+320: reduced motion preference active
+320: no browser JS errors
+390: no page overflow
+390: targets >=48px
+390: background stays fixed during backdrop scrolling (-27 -> -27)
+390: initial amount focus
+390: preset replaces amount
+390: pointer selection insertion
+390: backspace
+390: physical typing works
+390: invalid clipboard paste remains unchanged
+390: invalid edit disables submission
+390: exact uint64 maximum valid
+390: Tab does not focus background controls 0
+390: Tab does not focus background controls 1
+390: Tab does not focus background controls 2
+390: Tab does not focus background controls 3
+390: Tab does not focus background controls 4
+390: Tab does not focus background controls 5
+390: Tab does not focus background controls 6
+390: Tab does not focus background controls 7
+390: Tab does not focus background controls 8
+390: Tab does not focus background controls 9
+390: Tab does not focus background controls 10
+390: Tab does not focus background controls 11
+390: Tab does not focus background controls 12
+390: Tab does not focus background controls 13
+390: Tab does not focus background controls 14
+390: Tab does not focus background controls 15
+390: Tab does not focus background controls 16
+390: Tab does not focus background controls 17
+390: Tab does not focus background controls 18
+390: Tab does not focus background controls 19
+390: Escape restores focus
+390: close restores background position
+390: reopen clears amount
+390: demo submit stays local
+390: 200% text no page overflow
+390: enlarged sheet no horizontal overflow
+390: short sheet submit scrolls into view
+390: sheet remains scrollable while background is locked
+390: sheet boundary scrolling does not move background
+390: reduced motion preference active
+390: no browser JS errors

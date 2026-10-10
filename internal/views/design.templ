@@ -1,0 +1,158 @@
+package views
+
+import "fmt"
+
+type ActionVariant string
+const (
+	Pay ActionVariant = "pay"
+	Collect ActionVariant = "collect"
+	Neutral ActionVariant = "neutral"
+)
+type BadgeKind string
+const (
+	Host BadgeKind = "host"
+	NeutralBadge BadgeKind = "neutral"
+)
+type NoticeKind string
+const (
+	Info NoticeKind = "Info"
+	Success NoticeKind = "Success"
+	Warning NoticeKind = "Warning"
+	Error NoticeKind = "Error"
+)
+
+templ AppLayout(title string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+			<title>{ title }</title>
+			<link rel="stylesheet" href="/static/css/output.css"/>
+			<script src="/static/js/payment.js" defer></script>
+		</head>
+		<body class="pg-app">
+			<main class="pg-shell">{ children... }</main>
+		</body>
+	</html>
+}
+
+templ Brand() {
+	<div class="pg-brand">Pass <span>Go</span></div>
+}
+
+templ Button(variant ActionVariant, attrs templ.Attributes) {
+	<button class={ "pg-button pg-" + string(variant) } { attrs... }>{ children... }</button>
+}
+
+templ ActionTile(variant ActionVariant, attrs templ.Attributes) {
+	<button class={ "pg-tile pg-" + string(variant) } { attrs... }>{ children... }</button>
+}
+
+templ Panel(attrs templ.Attributes) {
+	<section class="pg-panel" { attrs... }>{ children... }</section>
+}
+
+templ Badge(kind BadgeKind) {
+	<span class={ "pg-badge pg-badge-" + string(kind) }>{ children... }</span>
+}
+
+templ Notice(kind NoticeKind, attrs templ.Attributes) {
+	<p class={ "pg-notice pg-notice-" + string(kind) } { attrs... }><strong>{ string(kind) + ": " }</strong>{ children... }</p>
+}
+
+templ PaymentSheet(id string, title string, attrs templ.Attributes) {
+	<dialog id={ id } class="pg-sheet" aria-labelledby={ id + "-title" } { attrs... }>
+		<div class="pg-sheet-content">
+			<header class="pg-sheet-header">
+				<h2 id={ id + "-title" }>{ title }</h2>
+				@Button(Neutral, templ.Attributes{"type": "button", "data-sheet-close": true, "aria-label": "Close payment sheet"}) { <span aria-hidden="true">×</span> }
+			</header>
+			{ children... }
+		</div>
+	</dialog>
+}
+
+templ AmountEntry(id string, attrs templ.Attributes) {
+	<div class="pg-amount" data-amount-entry>
+		<label for={ id }>Amount in whole dollars</label>
+		<input class="pg-input" id={ id } type="text" name="amount" inputmode="none" autocomplete="off" spellcheck="false" aria-describedby={ id + "-hint " + id + "-error" } data-amount-field { attrs... }/>
+		<p id={ id + "-hint" } class="pg-small">Use digits only. Type, paste, or use the keypad.</p>
+		<p id={ id + "-error" } class="pg-field-error" data-amount-error hidden></p>
+		<p class="pg-amount-display" data-amount-display aria-hidden="true">$0</p>
+		<div class="pg-presets" role="group" aria-label="Suggested amounts">
+			for _, value := range []string{"50", "100", "200", "500"} {
+				<button type="button" class="pg-key" data-preset={ value } aria-pressed="false">{ "$" + value }</button>
+			}
+		</div>
+		<div class="pg-keypad" role="group" aria-label="Amount keypad">
+			for digit := 1; digit <= 9; digit++ {
+				<button type="button" class="pg-key" data-digit={ fmt.Sprint(digit) }>{ fmt.Sprint(digit) }</button>
+			}
+			<span aria-hidden="true"></span>
+			<button type="button" class="pg-key" data-digit="0">0</button>
+			<button type="button" class="pg-key" data-backspace aria-label="Backspace"><svg aria-hidden="true" viewBox="0 0 32 24" width="28" height="24"><path d="M10 2H30V22H10L2 12Z M15 7L25 17 M25 7L15 17" fill="none" stroke="currentColor" stroke-width="2"></path></svg></button>
+		</div>
+	</div>
+}
+
+templ DesignPreview() {
+	@AppLayout("Pass Go design preview") {
+		@Brand()
+		<p class="pg-small">Development preview · No money moves</p>
+		<section aria-labelledby="balance-title">
+			<h1 id="balance-title">Alexandra Montgomery</h1>
+			<p class="pg-balance">$1,500</p>
+			<p>Your balance · Play money</p>
+		</section>
+		@Panel(templ.Attributes{"aria-labelledby": "players-title"}) {
+			<h2 id="players-title" class="pg-panel-title">Players</h2>
+			for i, name := range []string{"Alexandra Montgomery", "Sam", "Jamie", "Taylor", "Christopher Williams", "Jo"} {
+				<div class="pg-player-row">
+					<div>{ name }
+						if i == 0 {
+							@Badge(NeutralBadge) {
+								You
+							}
+							@Badge(Host) {
+								Host
+							}
+						}
+					</div>
+					<span class="pg-money">$1,500</span>
+				</div>
+			}
+		}
+		<div class="pg-actions">
+			@ActionTile(Collect, templ.Attributes{"type": "button", "disabled": true}) { <span aria-hidden="true">↓</span><span>Collect $200</span><small>From Bank · Preview only</small> }
+			@ActionTile(Pay, templ.Attributes{"type": "button", "data-sheet-open": "demo-payment"}) { <span aria-hidden="true">↑</span><span>Pay Sam</span><small>Try the payment sheet</small> }
+			@ActionTile(Pay, templ.Attributes{"type": "button", "disabled": true}) { <span aria-hidden="true">↑</span><span>Pay Bank</span><small>Preview only</small> }
+			@ActionTile(Collect, templ.Attributes{"type": "button", "disabled": true}) { <span aria-hidden="true">↓</span><span>Collect from Bank</span><small>Preview only</small> }
+		</div>
+		<section class="pg-ticket" aria-label="Game code">
+			<div><p>Share this code to join</p><p class="pg-code">ABCD</p></div>
+			@Button(Neutral, templ.Attributes{"type": "button", "disabled": true}) { Copy <small>Task 03</small> }
+		</section>
+		@Panel(templ.Attributes{"aria-labelledby": "states-title"}) {
+			<h2 id="states-title" class="pg-panel-title">Feedback examples</h2>
+			<div class="pg-examples">
+				@Notice(Info, nil) { Empty: no payments yet. Make a payment to begin. }
+				@Notice(Error, nil) { Payment failed. Your amount is saved. Try again. }
+				@Notice(Warning, nil) { Check the player and amount before paying. }
+				@Notice(Success, nil) { You paid Sam $200. }
+				@Button(Pay, templ.Attributes{"type": "button", "disabled": true, "aria-busy": "true"}) { Paying $200… }
+				<p class="pg-small">Pending example. Controls are disabled while paying.</p>
+				@Button(Neutral, templ.Attributes{"type": "button", "disabled": true}) { Pay $0 }
+				<p class="pg-small">Disabled example. Enter an amount greater than zero.</p>
+				<p>Largest supported amount</p><p class="pg-money pg-money-long">$18,446,744,073,709,551,615</p>
+			</div>
+		}
+		@PaymentSheet("demo-payment", "Pay Sam", templ.Attributes{"data-payment-demo": true}) {
+			<form data-payment-form>
+				@AmountEntry("demo-amount", nil)
+				@Button(Pay, templ.Attributes{"type": "submit", "data-payment-submit": true, "data-action": "Pay", "disabled": true}) { Pay $0 }
+				<p class="pg-notice" data-demo-result role="status"></p>
+			</form>
+		}
+	}
+}
